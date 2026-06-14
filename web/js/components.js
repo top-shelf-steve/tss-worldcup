@@ -22,11 +22,16 @@ export function matchLine(m) {
     </a>`;
 }
 
-// Group a flat list of matches into dated sections, newest grouping order preserved.
+// Group a flat list of matches into dated sections, ordered chronologically.
+// (The openfootball feed lists matches group-by-group, not by date, so we sort
+// by kickoff before grouping — otherwise day headers jump around.)
 export function matchDayGroups(list) {
+  const sorted = [...list].sort((a, b) =>
+    (a.kickoff_utc || a.date || "").localeCompare(b.kickoff_utc || b.date || "")
+  );
   const order = [];
   const byDay = new Map();
-  for (const m of list) {
+  for (const m of sorted) {
     const key = dayKey(m.kickoff_utc, m.date);
     if (!byDay.has(key)) { byDay.set(key, []); order.push(key); }
     byDay.get(key).push(m);

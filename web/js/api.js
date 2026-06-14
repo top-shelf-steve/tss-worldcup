@@ -22,5 +22,7 @@ export const api = {
   teams: () => get("teams"),
   team: (slug) => get(`team/${slug}`),
   bracket: () => get("bracket"),
+  stats: () => get("stats"),
+  news: () => get("news"),
   status: () => get("status"),
 };

@@ -132,3 +132,58 @@ def team(ds: dict, slug: str):
 
 def bracket(ds: dict) -> dict:
     return ds["bracket"]
+
+
+def stats(ds: dict) -> dict:
+    """Tournament stats derived purely from the goal data in the feed.
+
+    Own goals are excluded from the scorer chart (the listed name is an opponent,
+    not the team's own player); penalties count as goals and are tallied too.
+    """
+    scorers, team_goals = {}, {}
+    total_goals = played = 0
+    biggest = None
+
+    for m in ds["matches"]:
+        if not m.get("score"):
+            continue
+        played += 1
+        a, b = m["score"]["ft"]
+        total_goals += a + b
+
+        for team, gf, fl in ((m["team1"], a, m["flag1"]), (m["team2"], b, m["flag2"])):
+            tg = team_goals.setdefault(team, {"team": team, "flag": fl, "goals": 0})
+            tg["goals"] += gf
+
+        margin = abs(a - b)
+        if margin and (biggest is None or margin > biggest["margin"]):
+            biggest = {
+                "match_id": m["id"], "team1": m["team1"], "team2": m["team2"],
+                "flag1": m["flag1"], "flag2": m["flag2"],
+                "score": m["score"]["ft"], "margin": margin,
+            }
+
+        for goals, team, fl in ((m["goals1"], m["team1"], m["flag1"]),
+                                (m["goals2"], m["team2"], m["flag2"])):
+            for g in goals:
+                if g.get("owngoal"):
+                    continue
+                s = scorers.setdefault(g["name"], {
+                    "name": g["name"], "team": team, "flag": fl, "goals": 0, "pens": 0,
+                })
+                s["goals"] += 1
+                if g.get("penalty"):
+                    s["pens"] += 1
+
+    scorer_list = sorted(scorers.values(), key=lambda s: (-s["goals"], s["name"]))
+    team_list = sorted(team_goals.values(), key=lambda t: (-t["goals"], t["team"]))
+    return {
+        "scorers": scorer_list[:20],
+        "team_goals": [t for t in team_list if t["goals"] > 0][:10],
+        "totals": {
+            "matches_played": played,
+            "goals": total_goals,
+            "avg_goals": round(total_goals / played, 2) if played else 0,
+            "biggest_win": biggest,
+        },
+    }

@@ -20,6 +20,7 @@ ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT))
 
 from server import dataset as D  # noqa: E402
+from server import news  # noqa: E402
 from server.sources.base import DataSource  # noqa: E402
 from server.sources.openfootball import OpenFootballSource  # noqa: E402
 
@@ -67,6 +68,8 @@ def main():
     write(data / "groups.json", D.groups(ds))
     write(data / "teams.json", D.teams(ds))
     write(data / "bracket.json", D.bracket(ds))
+    write(data / "stats.json", D.stats(ds))
+    write(data / "news.json", {"items": news.fetch_news()})
     write(data / "status.json", {
         "source": ds["source"], "updated_at": ds["generated_at"], "stale": False,
     })

@@ -11,6 +11,7 @@ from dotenv import load_dotenv
 from flask import Flask, abort, jsonify, send_from_directory
 
 from . import dataset as D
+from . import news as news_mod
 from .cache import DataCache
 from .sources.openfootball import OpenFootballSource
 
@@ -74,6 +75,16 @@ def api_team(slug):
 @app.get("/api/bracket")
 def api_bracket():
     return jsonify(D.bracket(_dataset()))
+
+
+@app.get("/api/stats")
+def api_stats():
+    return jsonify(D.stats(_dataset()))
+
+
+@app.get("/api/news")
+def api_news():
+    return jsonify({"items": news_mod.get_news()})
 
 
 # --- static frontend (SPA) -------------------------------------------------
