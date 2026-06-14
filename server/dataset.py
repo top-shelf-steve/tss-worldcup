@@ -25,6 +25,20 @@ HOST_PINS = [
     {"country": "Canada", "x": 28.0, "y": 25.8, "color": "#3b6fb0"},
     {"country": "Mexico", "x": 22.5, "y": 39.2, "color": "#2e8b57"},
 ]
+HOST_COLOR = {p["country"]: p["color"] for p in HOST_PINS}
+
+# Which host nation each venue is in (everything not listed is in the USA), so a
+# match card can be tinted to match its host-nation dot on the map.
+HOST_BY_CITY = {
+    "Toronto": "Canada", "Vancouver": "Canada",
+    "Guadalajara (Zapopan)": "Mexico", "Mexico City": "Mexico",
+    "Monterrey (Guadalupe)": "Mexico",
+}
+
+
+def host_for_ground(ground: str):
+    country = HOST_BY_CITY.get(ground, "USA")
+    return country, HOST_COLOR.get(country)
 
 
 def build(source) -> dict:
@@ -67,12 +81,24 @@ def _team_standing(standings: dict, team: str):
 def overview(ds: dict) -> dict:
     upcoming = sorted((m for m in ds["matches"] if m["status"] == "upcoming"),
                       key=_by_kickoff)
-    next_matches = [_light(m) for m in upcoming[:8]]
+    next_matches = []
+    for m in upcoming[:8]:
+        lm = _light(m)
+        lm["host_country"], lm["host_color"] = host_for_ground(lm["ground"])
+        next_matches.append(lm)
+
+    featured = team(ds, slugify(FEATURED_TEAM))
+    featured_group = None
+    if featured and featured.get("standing"):
+        g = featured["standing"]["group"]
+        featured_group = {"group": g, "table": ds["standings"].get(g, [])}
+
     return {
         "tournament": TOURNAMENT,
         "host_pins": HOST_PINS,
         "next_matches": next_matches,
-        "featured": team(ds, slugify(FEATURED_TEAM)),
+        "featured": featured,
+        "featured_group": featured_group,
     }
 
 
