@@ -6,7 +6,7 @@ group standings, the knockout bracket, every team, and a **Team USA** spotlight.
 Deliberately *not* a generic dashboard: ink-on-paper, hairline rules, real type
 hierarchy. Flat — no gradients, glass, or drop shadows.
 
-![sections: Overview · Matches · Groups · Bracket · Teams](web/assets/world-dots.svg)
+![sections: Overview · Matches · Groups · Bracket · Teams](web/assets/na-dots.svg)
 
 ## How it works
 
@@ -85,10 +85,10 @@ server/            Flask app + data layer
     base.py          DataSource contract + normalized match shape
     openfootball.py  the free, no-key source
 web/               static frontend (vanilla, hash-routed SPA)
-  index.html  css/  js/{api,app,util,components,views/*}  assets/{flags,world-dots.svg}
+  index.html  css/  js/{api,app,util,components,views/*}  assets/{flags,na-dots.svg}
 scripts/
   build_static.py    export dist/ for GitHub Pages
-  gen_world_dots.py  (one-off) regenerate the dotted world map
+  gen_na_dots.py     (one-off) regenerate the dotted US/Canada/Mexico map
 ```
 
 ## What's stubbed (and why)

@@ -5,9 +5,10 @@ on:
   push:
     branches: [main]
   schedule:
-    # every 30 minutes — keeps results/standings/bracket fresh during the tournament.
+    # every 15 minutes — keeps results/standings/bracket fresh during the tournament.
+    # 4 builds/hour stays well under GitHub Pages' ~10/hour soft limit.
     # (GitHub may delay scheduled runs under load; that's fine for a tracker.)
-    - cron: "*/30 * * * *"
+    - cron: "*/15 * * * *"
   workflow_dispatch: {}   # lets you trigger a rebuild manually from the Actions tab
 
 # Allow the workflow to publish to Pages.

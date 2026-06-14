@@ -87,11 +87,16 @@ function ordinal(n) {
   return n + (s[(v - 20) % 10] || s[v] || s[0]);
 }
 
+function cityPin(c) {
+  const cls = c.highlight ? "city-pin city-pin--active" : "city-pin";
+  const side = c.x > 58 ? "city-pin__label--left" : "city-pin__label--right";
+  const label = c.highlight ? `<span class="city-pin__label ${side}">${esc(c.label)}</span>` : "";
+  return `<span class="${cls}" style="left:${c.x}%;top:${c.y}%;--c:${esc(c.color)}" title="${esc(c.city)}">${label}</span>`;
+}
+
 export async function render(root) {
   const d = await api.overview();
-  const pins = d.host_pins.map((p) =>
-    `<span class="pin" style="left:${p.x}%;top:${p.y}%;background:${p.color};color:${p.color}" title="${esc(p.country)}"></span>`
-  ).join("");
+  const pins = d.host_cities.map(cityPin).join("");
   const cards = d.next_matches.slice(0, 4).map(nextCard).join("");
 
   root.innerHTML = `
@@ -105,15 +110,15 @@ export async function render(root) {
         </div>
         <a class="hero__cta" href="#/matches">Explore tournament <span aria-hidden="true">→</span></a>
       </div>
-      <div class="worldmap">
-        <img class="worldmap__dots" src="assets/world-dots.svg" alt="" aria-hidden="true" />
+      <div class="worldmap" style="aspect-ratio:${d.map_aspect}">
+        <img class="worldmap__dots" src="assets/na-dots.svg" alt="Host cities across the United States, Canada and Mexico" />
         ${pins}
       </div>
     </section>
 
     <div class="section-head"><h2 class="h-section">Next matches</h2>
       <a class="more" href="#/matches">All matches →</a></div>
-    <div class="host-legend">${d.host_pins.map((p) =>
+    <div class="host-legend">${d.host_colors.map((p) =>
       `<span class="host-legend__item"><span class="host-dot" style="background:${esc(p.color)}"></span>${esc(p.country)}</span>`).join("")}
     </div>
     <div class="card-row">${cards || '<p class="notice">No upcoming matches.</p>'}</div>

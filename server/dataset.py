@@ -9,6 +9,7 @@ static exporter can reuse the exact same payloads.
 from datetime import datetime, timezone
 
 from . import bracket as bracket_mod
+from . import hostmap
 from .standings import compute_standings
 from .teams import (CONFEDERATIONS, FEATURED_TEAM, HOSTS, SLUG_TO_NAME, TEAMS,
                     confederation, flag, slugify)
@@ -19,26 +20,12 @@ TOURNAMENT = {
     "hosts": "United States · Canada · Mexico",
 }
 
-# host pins for the Overview map (equirectangular: x=(lon+180)/360, y=(90-lat)/180)
-HOST_PINS = [
-    {"country": "USA", "x": 23.1, "y": 31.8, "color": "#c0473f"},
-    {"country": "Canada", "x": 28.0, "y": 25.8, "color": "#3b6fb0"},
-    {"country": "Mexico", "x": 22.5, "y": 39.2, "color": "#2e8b57"},
-]
-HOST_COLOR = {p["country"]: p["color"] for p in HOST_PINS}
-
-# Which host nation each venue is in (everything not listed is in the USA), so a
-# match card can be tinted to match its host-nation dot on the map.
-HOST_BY_CITY = {
-    "Toronto": "Canada", "Vancouver": "Canada",
-    "Guadalajara (Zapopan)": "Mexico", "Mexico City": "Mexico",
-    "Monterrey (Guadalupe)": "Mexico",
-}
-
 
 def host_for_ground(ground: str):
-    country = HOST_BY_CITY.get(ground, "USA")
-    return country, HOST_COLOR.get(country)
+    """Host nation + tint color for a venue (so match cards match the map dots)."""
+    info = hostmap.CITY_COORDS.get(ground)
+    country = info[2] if info else "USA"
+    return country, hostmap.COUNTRY_COLOR[country]
 
 
 def build(source) -> dict:
@@ -93,9 +80,14 @@ def overview(ds: dict) -> dict:
         g = featured["standing"]["group"]
         featured_group = {"group": g, "table": ds["standings"].get(g, [])}
 
+    # cities hosting the next few matches get highlighted/labelled on the map
+    highlight = {m["ground"] for m in next_matches[:4]}
     return {
         "tournament": TOURNAMENT,
-        "host_pins": HOST_PINS,
+        "host_colors": [{"country": c, "color": col}
+                        for c, col in hostmap.COUNTRY_COLOR.items()],
+        "host_cities": hostmap.host_cities(highlight),
+        "map_aspect": round(hostmap.ASPECT, 4),
         "next_matches": next_matches,
         "featured": featured,
         "featured_group": featured_group,
