@@ -213,9 +213,12 @@ a:hover { text-decoration: none; }
 }
 .hero__cta:hover { gap: 12px; }
 
-.worldmap { position: relative; width: 100%; aspect-ratio: 360 / 165; color: var(--hair-strong); }
-.worldmap__dots { width: 100%; height: 100%; display: block; }
-html[data-theme="dark"] .worldmap { color: #34302a; }
+.worldmap { position: relative; width: 100%; aspect-ratio: 360 / 165; }
+.worldmap__dots { width: 100%; height: 100%; display: block; opacity: 0.85; }
+/* The map is an external SVG in an <img>, so it ignores page color (renders
+   black). On the dark background that's invisible, so recolor it via a filter:
+   invert flips the black dots to white, brightness dims them to a soft gray. */
+html[data-theme="dark"] .worldmap__dots { filter: invert(1) brightness(0.5); }
 .pin {
   position: absolute; transform: translate(-50%, -50%);
   width: 13px; height: 13px; border-radius: 50%;
