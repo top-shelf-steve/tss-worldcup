@@ -1,0 +1,59 @@
+name: Build & deploy to GitHub Pages
+
+# Rebuilds the static site (re-fetching the latest results) and deploys it.
+on:
+  push:
+    branches: [main]
+  schedule:
+    # every 30 minutes — keeps results/standings/bracket fresh during the tournament.
+    # (GitHub may delay scheduled runs under load; that's fine for a tracker.)
+    - cron: "*/30 * * * *"
+  workflow_dispatch: {}   # lets you trigger a rebuild manually from the Actions tab
+
+# Allow the workflow to publish to Pages.
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never run two deploys at once; let an in-progress one finish.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Build static site
+        # Fetches the openfootball feed and writes dist/.
+        # PHASE 2: to use API-Football instead, add API_FOOTBALL_KEY as a repo
+        # secret and pass it here, e.g.:
+        #   env:
+        #     API_FOOTBALL_KEY: ${{ secrets.API_FOOTBALL_KEY }}
+        run: python scripts/build_static.py
+
+      - name: Upload Pages artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
